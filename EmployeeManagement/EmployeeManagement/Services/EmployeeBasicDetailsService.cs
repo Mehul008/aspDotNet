@@ -38,7 +38,7 @@ namespace EmployeeManagement.Services
                 Address = employeeBasicDto.Address,
 
 
-  
+
                 CreatedOn = DateTime.UtcNow,
                 UpdatedOn = DateTime.UtcNow,
                 DocumentType = "employee-basic",
@@ -81,7 +81,7 @@ namespace EmployeeManagement.Services
             return await _cosmosDbService.GetEmployeeBasicDetailsByEmployeeUId(EmployeeUId);
         }
 
-        public  Task<string> MakePost(EmployeeBasicDto apiRequestData)
+        public Task<string> MakePost(EmployeeBasicDto apiRequestData)
         {
             var socketsHandler = new SocketsHttpHandler
             {
@@ -108,7 +108,7 @@ namespace EmployeeManagement.Services
             }
         }
 
-        public  Task<string> MakeGet(string id)
+        public Task<string> MakeGet(string id)
         {
             var socketsHandler = new SocketsHttpHandler
             {
@@ -140,36 +140,36 @@ namespace EmployeeManagement.Services
             if (employee != null)
             {
                 var employeeBasicDetail = new EmployeeBasicDetails
-            {
-                EmployeeUId =employee.EmployeeUId,
-                Id = Guid.NewGuid().ToString(),
-                EmployeeID = employee.EmployeeID,
-                Salutory = employeeBasicDto.Salutory,
-                FirstName = employeeBasicDto.FirstName,
-                MiddleName = employeeBasicDto.MiddleName,
-                LastName = employeeBasicDto.LastName,
-                NickName = employeeBasicDto.NickName,
-                Email = employeeBasicDto.Email,
-                Mobile = employeeBasicDto.Mobile,
-                Role = employee.Role,
-                ReportingManagerUId = employee.ReportingManagerUId,
-                ReportingManagerName = employee.ReportingManagerName,
-                Address = employee.Address,
+                {
+                    EmployeeUId = employee.EmployeeUId,
+                    Id = Guid.NewGuid().ToString(),
+                    EmployeeID = employee.EmployeeID,
+                    Salutory = employeeBasicDto.Salutory,
+                    FirstName = employeeBasicDto.FirstName,
+                    MiddleName = employeeBasicDto.MiddleName,
+                    LastName = employeeBasicDto.LastName,
+                    NickName = employeeBasicDto.NickName,
+                    Email = employeeBasicDto.Email,
+                    Mobile = employeeBasicDto.Mobile,
+                    Role = employee.Role,
+                    ReportingManagerUId = employee.ReportingManagerUId,
+                    ReportingManagerName = employee.ReportingManagerName,
+                    Address = employee.Address,
 
-                CreatedOn = DateTime.UtcNow,
-                UpdatedOn = DateTime.UtcNow,
-                DocumentType = "employee-basic",
-                CreatedBy = "admin",
-                CreatedByName = "admin",
-                UpdatedBy = "admin",
-                UpdatedByName = "admin",
-                Version = employee.Version+=1,
-                Active = true,
-                Archived = false
+                    CreatedOn = DateTime.UtcNow,
+                    UpdatedOn = DateTime.UtcNow,
+                    DocumentType = "employee-basic",
+                    CreatedBy = "admin",
+                    CreatedByName = "admin",
+                    UpdatedBy = "admin",
+                    UpdatedByName = "admin",
+                    Version = employee.Version += 1,
+                    Active = true,
+                    Archived = false
 
-            };
+                };
 
-               return await _cosmosDbService.UpdateEmployeeBasicDetails(employee.Id, employeeBasicDetail);
+                return await _cosmosDbService.UpdateEmployeeBasicDetails(employee.Id, employeeBasicDetail);
             }
             else
             {
@@ -189,7 +189,7 @@ namespace EmployeeManagement.Services
 
             if (empBasicDetail == null)
             {
-                return null; 
+                return null;
             }
 
             var empBasicEmployeeUId = empBasicDetail.EmployeeUId;
@@ -212,6 +212,7 @@ namespace EmployeeManagement.Services
             string filePath = "C:\\Users\\admin\\Desktop\\centraLogic\\EmployeeExport.xlsx";
 
             var employeeList = await _cosmosDbService.GetAllEmployeeBasicDetails();
+            var employeeAdditionalDetailsList = await _cosmosDbService.GetAllEmployeeAdditionDetails();
 
             using (var package = new ExcelPackage())
             {
@@ -220,10 +221,13 @@ namespace EmployeeManagement.Services
                 // Add headers
                 string[] headers = new string[]
                 {
-                        "Salutory", "FirstName", "MiddleName", "LastName", "NickName", "Email", "Mobile",
-                        "EmployeeID", "Role", "ReportingManagerUEmployeeUId", "ReportingManagerName", "Address", "EmployeeUId",
-                        "UEmployeeUId", "DocumentType", "CreatedBy", "CreatedByName", "CreatedOn", "UpdatedBy",
-                        "UpdatedByName", "UpdatedOn", "Version", "Active", "Archived"
+            "Salutory", "FirstName", "MiddleName", "LastName", "NickName", "Email", "Mobile",
+            "EmployeeID", "Role", "ReportingManagerUEmployeeUId", "ReportingManagerName", "Address", "EmployeeUId",
+            "DocumentType", "CreatedBy", "CreatedByName", "CreatedOn", "UpdatedBy",
+            "UpdatedByName", "UpdatedOn", "Version", "Active", "Archived",
+            "AlternateEmail", "AlternateMobile", "DesignationName", "DepartmentName", "LocationName", "EmployeeStatus",
+            "SourceOfHire", "DateOfJoining", "DateOfBirth", "Age", "Gender", "Religion", "Caste", "MaritalStatus",
+            "BloodGroup", "Height", "Weight", "PAN", "Aadhar", "Nationality", "PassportNumber", "PFNumber"
                 };
 
                 for (int i = 0; i < headers.Length; i++)
@@ -235,6 +239,8 @@ namespace EmployeeManagement.Services
                 for (int row = 0; row < employeeList.Count; row++)
                 {
                     var employee = employeeList[row];
+                    var additionalDetails = employeeAdditionalDetailsList.FirstOrDefault(e => e.EmployeeBasicDetailsUId == employee.EmployeeUId);
+
                     worksheet.Cells[row + 2, 1].Value = employee.Salutory;
                     worksheet.Cells[row + 2, 2].Value = employee.FirstName;
                     worksheet.Cells[row + 2, 3].Value = employee.MiddleName;
@@ -251,13 +257,39 @@ namespace EmployeeManagement.Services
                     worksheet.Cells[row + 2, 14].Value = employee.DocumentType;
                     worksheet.Cells[row + 2, 15].Value = employee.CreatedBy;
                     worksheet.Cells[row + 2, 16].Value = employee.CreatedByName;
-                    worksheet.Cells[row + 2, 17].Value = employee.CreatedOn.ToString(); 
+                    worksheet.Cells[row + 2, 17].Value = employee.CreatedOn.ToString();
                     worksheet.Cells[row + 2, 18].Value = employee.UpdatedBy;
                     worksheet.Cells[row + 2, 19].Value = employee.UpdatedByName;
-                    worksheet.Cells[row + 2, 20].Value = employee.UpdatedOn.ToString(); 
-                    worksheet.Cells[row + 2, 21].Value = employee.Version.ToString(); 
-                    worksheet.Cells[row + 2, 22].Value = employee.Active.ToString(); 
-                    worksheet.Cells[row + 2, 23].Value = employee.Archived.ToString(); 
+                    worksheet.Cells[row + 2, 20].Value = employee.UpdatedOn.ToString();
+                    worksheet.Cells[row + 2, 21].Value = employee.Version.ToString();
+                    worksheet.Cells[row + 2, 22].Value = employee.Active.ToString();
+                    worksheet.Cells[row + 2, 23].Value = employee.Archived.ToString();
+
+                    if (additionalDetails != null)
+                    {
+                        worksheet.Cells[row + 2, 24].Value = additionalDetails.AlternateEmail;
+                        worksheet.Cells[row + 2, 25].Value = additionalDetails.AlternateMobile;
+                        worksheet.Cells[row + 2, 26].Value = additionalDetails.WorkInformation.DesignationName;
+                        worksheet.Cells[row + 2, 27].Value = additionalDetails.WorkInformation.DepartmentName;
+                        worksheet.Cells[row + 2, 28].Value = additionalDetails.WorkInformation.LocationName;
+                        worksheet.Cells[row + 2, 29].Value = additionalDetails.WorkInformation.EmployeeStatus;
+                        worksheet.Cells[row + 2, 30].Value = additionalDetails.WorkInformation.SourceOfHire;
+                        worksheet.Cells[row + 2, 31].Value = additionalDetails.WorkInformation.DateOfJoining.ToString();
+                        worksheet.Cells[row + 2, 32].Value = additionalDetails.PersonalDetails.DateOfBirth.ToString();
+                        worksheet.Cells[row + 2, 33].Value = additionalDetails.PersonalDetails.Age;
+                        worksheet.Cells[row + 2, 34].Value = additionalDetails.PersonalDetails.Gender;
+                        worksheet.Cells[row + 2, 35].Value = additionalDetails.PersonalDetails.Religion;
+                        worksheet.Cells[row + 2, 36].Value = additionalDetails.PersonalDetails.Caste;
+                        worksheet.Cells[row + 2, 37].Value = additionalDetails.PersonalDetails.MaritalStatus;
+                        worksheet.Cells[row + 2, 38].Value = additionalDetails.PersonalDetails.BloodGroup;
+                        worksheet.Cells[row + 2, 39].Value = additionalDetails.PersonalDetails.Height;
+                        worksheet.Cells[row + 2, 40].Value = additionalDetails.PersonalDetails.Weight;
+                        worksheet.Cells[row + 2, 41].Value = additionalDetails.IdentityInformation.PAN;
+                        worksheet.Cells[row + 2, 42].Value = additionalDetails.IdentityInformation.Aadhar;
+                        worksheet.Cells[row + 2, 43].Value = additionalDetails.IdentityInformation.Nationality;
+                        worksheet.Cells[row + 2, 44].Value = additionalDetails.IdentityInformation.PassportNumber;
+                        worksheet.Cells[row + 2, 45].Value = additionalDetails.IdentityInformation.PFNumber;
+                    }
                 }
 
                 worksheet.Cells.AutoFitColumns();
@@ -265,7 +297,6 @@ namespace EmployeeManagement.Services
             }
 
             return filePath;
- 
+        }
     }
-    }
-    }
+}
